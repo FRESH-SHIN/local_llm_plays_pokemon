@@ -31,13 +31,15 @@ Your task is to decide the next action based on the current game state and the p
 ## Your Game Screen
 When isTextBoxVisible is true, you can read the text information via the next table.
 - **Note**: Any entry shown as 0x## (e.g., 0xAA) denotes a *background tile code*, not regular text.
+- If the displayed text ends with a **"▼"** symbol, it indicates that pressing `"a"` will progress the dialogue.
+
 {screen_ascii_data}
 
 ## Controls:
 You must always select and press one of the following buttons:
 - **"start"**: Opens the in-game menu.
 - **"select"**: Used for special functions in some menus. Don't use this button because the button is not usable under any circumstances.
-- **"a"**: Confirms selections, interacts with NPCs, opens doors, or uses items.
+- **"a"**: Confirms selections, interacts with NPCs, or uses items.
 - **"b"**: Cancels selections, closes menus.
 - **"up"**: Moves the player or menu cursor upward.
 - **"down"**: Moves the player or menu cursor downward.

@@ -256,7 +256,7 @@ class MemoryReader:
                 break
             passable_tiles.append(tile)
             offset += 1
-        return
+        return passable_tiles
     def read_memory_bytes(self, symbol_or_addr, length):
         """
         특정 심볼 또는 직접적인 메모리 주소에서 지정한 길이만큼 바이트를 읽어옴.
@@ -367,7 +367,7 @@ class MemoryReader:
                 },
                 "badges": bin(self.read_memory("wObtainedBadges")).count("1")  # 1의 개수만큼 배지 개수
             },
-            "passable_tiles": passable_tiles,
+            "passable_tiles": [f'{i:#x}' for i in passable_tiles],
             "interactive_objects": interactive_objects
             # "inventory": {
             #     "items": parsed_items
