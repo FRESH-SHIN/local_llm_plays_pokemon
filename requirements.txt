@@ -1,0 +1,4 @@
+pyboy>=2.0.0
+aiohttp
+ollama
+pillow
