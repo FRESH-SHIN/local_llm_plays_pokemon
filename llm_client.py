@@ -9,7 +9,7 @@ import re
 MODEL_NAME = "deepseek-r1:14b"
 async def send_to_llm(screen_ascii_data ,game_state, image_data):
     """
-    LLaVA 모델을 사용하여 게임 상태 및 화면 이미지를 LLM에 전송하고, 스트리밍으로 응답을 받아 실시간 출력하는 함수.
+    이미지 전송을 지원하는 모델일 경우 화면 이미지를 추가하여 게임 상태를 LLM에 전송하고, 스트리밍으로 응답을 받아 실시간 출력하는 함수.
 
     Args:
         game_screen_ascii (str): game screen ascii data
@@ -32,7 +32,7 @@ Your task is to decide the next action based on the current game state and the p
 When isTextBoxVisible is true, you can read the text information via the next table.
 - **Note**: Any entry shown as 0x## (e.g., 0xAA) denotes a *background tile code*, not regular text.
 - If the displayed text ends with a **"▼"** symbol, it indicates that pressing `"a"` will progress the dialogue.
-
+- The symbols `←`, `↑`, `→`, `↓` represent NPCs or sprites. When encountering these, you should stand in front of the sprite and press `"a"` to obtain information.
 {screen_ascii_data}
 
 ## Controls:
@@ -49,6 +49,11 @@ You must always select and press one of the following buttons:
 - The **"start"** button **cannot** be used when `isTextMenuWindowVisible` is `true`.
 - The **"select"** button **must never be used** under any circumstances.
 - You can't move your player when isTextBoxVisible is True, but you CAN move menu cursor(▶).
+- When `overworld` is `true`, your movement should be based on the `passable_tiles` list:  
+  `{[f'{i:#x}' for i in game_state.passable_tiles]}`  
+  This list determines which tiles you can walk on.
+- The symbols `←`, `↑`, `→`, `↓` represent NPCs or sprites. When encountering these, you should **stand in front of the sprite and press `"a"` to obtain information**.
+
 ## Output Restrictions:
 - You **must always** return a `"press_button"` command.
 - You **must not** return any other function.
