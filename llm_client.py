@@ -50,7 +50,7 @@ You must always select and press one of the following buttons:
 - The **"select"** button **must never be used** under any circumstances.
 - You can't move your player when isTextBoxVisible is True, but you CAN move menu cursor(▶).
 - When `overworld` is `true`, your movement should be based on the `passable_tiles` list:  
-  `{[f'{i:#x}' for i in game_state.passable_tiles]}`  
+  `{game_state['passable_tiles']}`  
   This list determines which tiles you can walk on.
 - The symbols `←`, `↑`, `→`, `↓` represent NPCs or sprites. When encountering these, you should **stand in front of the sprite and press `"a"` to obtain information**.
 
