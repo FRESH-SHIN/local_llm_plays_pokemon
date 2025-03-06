@@ -43,7 +43,7 @@ async def llm_worker(game_state_queue, command_queue, is_working, pyboy):
                     if btn not in ["a", "b", "up", "down", "left", "right", "start"]:
                         print(f"[ERROR] Invalid button: {btn}")
                         continue
-                    command_queue.put(btn)
+                    await command_queue.put(btn)
                 print(f"[INFO] Joypad commands queued: {button_list}")
             else:
                 print(f"[ERROR] Unknown command format: {command_response}")
