@@ -190,7 +190,7 @@ class MemoryReader:
             facing_code = tile & 0x0C
             direction = direction_map.get(facing_code, "Unknown")
             icon = '⚪︎'
-            if i == 0:
+            if i <= 3:
                 icon = '◉'
             oam_list.append({
                 "x": tile_x,
