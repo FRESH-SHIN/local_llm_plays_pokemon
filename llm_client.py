@@ -77,21 +77,17 @@ You must always select and press one of the following buttons:
   `{game_state['passable_tiles']}`  
   This list determines which tiles you can walk on.
 
-## Output Restrictions:
-- You **must always** return a `"press_button"` command.
-- You **must not** return any other function.
-- If no action is needed, choose a reasonable button press, such as `"b"` to cancel.
-## Output Format:
-- Return a JSON object **inside a triple backtick block (\`\`\`json\\n{{}}\`\`\`)** like this:
-```json
-{{
-    "function": "press_button",
-    "args": {{"button": "<one of the buttons listed above>"}}
-}}
+## Output Format
+Always respond using one of the following formats:
 ```
-- The JSON **must always** contain a `"press_button"` command.
-- After the JSON response, provide a **short explanation** (one or two sentences) of why the selected button is pressed.
-    """
+/joypad button1
+```
+```
+/take_note {{your note}}
+```
+
+- Provide a short explanation (1-2 sentences) of the chosen buttons after the command.
+"""
 
     client = AsyncClient()
     response_data = ""
