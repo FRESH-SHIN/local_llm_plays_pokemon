@@ -6,7 +6,7 @@ from pyboy import PyBoy
 from ollama import AsyncClient
 import re
 
-MODEL_NAME = "deepseek-r1:14b"
+MODEL_NAME = "deepseek-r1:1.5b"
 async def send_to_llm(screen_ascii_data ,game_state, image_data):
     """
     이미지 전송을 지원하는 모델일 경우 화면 이미지를 추가하여 게임 상태를 LLM에 전송하고, 스트리밍으로 응답을 받아 실시간 출력하는 함수.
@@ -28,12 +28,26 @@ Your task is to decide the next action based on the current game state and the p
 ## Game State:
 {json.dumps(game_state, indent=2)}
 
+
+## Exploration Objectives:
+- Explore unknown regions and reveal new areas.
+- Interact with NPCs to collect hints or obtain important items.
+- Catch new Pokémon species and expand your Pokédex.
+- Prioritize visiting Pokémon Centers when Pokémon health is low.
+
 ## Your Game Screen
 When isTextBoxVisible is true, you can read the text information via the next table.
 - **Note**: Any entry shown as 0x## (e.g., 0xAA) denotes a *background tile code*, not regular text.
 - If the displayed text ends with a **"▼"** symbol, it indicates that pressing `"a"` will progress the dialogue.
-- The symbols `←`, `↑`, `→`, `↓` represent NPCs or sprites. When encountering these, you should stand in front of the sprite and press `"a"` to obtain information.
+- The symbols `○` represent NPCs or sprites. When encountering these, you should stand in front of the sprite and press `"a"` to obtain information.
+- The symbol ◉ represents the player.
 {screen_ascii_data}
+
+## Decision Criteria (Priority Order):
+1. Engage storyline-related NPCs or special events.
+2. Explore unexplored or promising map regions.
+3. Search for hidden items or Pokémon encounters.
+4. Maintain Pokémon's health by visiting Pokémon Centers.
 
 ## Controls:
 You must always select and press one of the following buttons:
@@ -52,7 +66,6 @@ You must always select and press one of the following buttons:
 - When `overworld` is `true`, your movement should be based on the `passable_tiles` list:  
   `{game_state['passable_tiles']}`  
   This list determines which tiles you can walk on.
-- The symbols `←`, `↑`, `→`, `↓` represent NPCs or sprites. When encountering these, you should **stand in front of the sprite and press `"a"` to obtain information**.
 
 ## Output Restrictions:
 - You **must always** return a `"press_button"` command.

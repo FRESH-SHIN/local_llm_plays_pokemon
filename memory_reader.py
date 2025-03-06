@@ -147,7 +147,7 @@ class MemoryReader:
         return sprite_entries
 
 
-    def get_npc_positions(self, num_entries=40, screen_width=20, screen_height=18):
+    def get_oam_positions(self, num_entries=40, screen_width=20, screen_height=18):
         """
         num_entries: OAM 버퍼에 포함된 스프라이트 수 (예: 40)
         screen_width, screen_height: 화면의 타일 단위 크기 (기본 20×18)
@@ -158,7 +158,7 @@ class MemoryReader:
         """
         # Game Boy의 OAM은 총 40개의 스프라이트, 각 4바이트 (40*4=160바이트)
         oam_bytes = self.read_memory_bytes("wOAMBuffer", 160)
-        npc_list = []
+        oam_list = []
         # 방향 매핑 (타일 번호의 하위 4비트 값 기준)
         direction_map = {0x00: "Down", 0x04: "Up", 0x08: "Left", 0x0C: "Right"}
         direction_icon_map = {"Down": "↓", "Up": "↑", "Left": "←", "Right": "→", "Unknown": "?"}
@@ -166,9 +166,9 @@ class MemoryReader:
         for i in range(num_entries):
             base = i * 4
             y_raw = oam_bytes[base]
-            tile = oam_bytes[base + 1]
-            attr = oam_bytes[base + 2]  # 필요 시 사용 가능
-            x_raw = oam_bytes[base + 3]
+            x_raw = oam_bytes[base + 1]
+            tile = oam_bytes[base + 2]
+            attr = oam_bytes[base + 3]  # 필요 시 사용 가능
             # 사용되지 않은 스프라이트는 X 또는 Y가 0인 경우가 많음
             if y_raw == 0 or x_raw == 0:
                 continue
@@ -189,30 +189,34 @@ class MemoryReader:
             # 타일 번호의 하위 4비트 중 0x0C 마스크를 사용해 방향 결정
             facing_code = tile & 0x0C
             direction = direction_map.get(facing_code, "Unknown")
-            npc_list.append({
+            icon = '⚪︎'
+            if i == 0:
+                icon = '◉'
+            oam_list.append({
                 "x": tile_x,
                 "y": tile_y,
                 "direction": direction,
-                "icon": direction_icon_map.get(direction, "?")
+                "icon": icon
             })
-        return npc_list
+            
+        return oam_list
 
     def generate_overworld_markdown_from_memory(self, width=20, height=18):
         """
         width, height: 출력할 표의 타일 크기 (기본 20×18)
         
         MemoryReader의 read_memory_bytes()를 사용하여 'wTileMap' 심볼로부터 BGMAP 데이터를 읽어옵니다.
-        그리고 get_npc_positions()를 통해 메모리에서 NPC 위치와 바라보는 방향을 읽어온 후,
-        NPC가 있는 위치는 해당 NPC 아이콘(방향 기호)으로 덮어쓰고 나머지는 tile_to_char 매핑에 따라 문자를 출력합니다.
+        그리고 get_oam_positions()를 통해 메모리에서 OAM 위치와 바라보는 방향을 읽어온 후,
+       tile_to_char 매핑에 따라 문자를 출력합니다.
         """
         # BGMAP 데이터: 'wTileMap' 심볼로부터 width*height 바이트 읽기
         bgmap = self.read_memory_bytes("wTileMap", width * height)
         tile_to_char = self.tile_to_char
 
-        # 메모리에서 NPC 데이터를 읽어옴
-        npc_positions = self.get_npc_positions(num_entries=40, screen_width=width, screen_height=height)
-        # 빠른 조회를 위해 좌표를 키로 하는 딕셔너리 생성: (x, y) -> npc 데이터
-        npc_dict = {(npc["x"], npc["y"]): npc for npc in npc_positions}
+        # 메모리에서 oam 데이터를 읽어옴
+        oam_positions = self.get_oam_positions(num_entries=40, screen_width=width, screen_height=height)
+        # 빠른 조회를 위해 좌표를 키로 하는 딕셔너리 생성: (x, y) -> oam 데이터
+        oam_dict = {(oam["x"], oam["y"]): oam for oam in oam_positions}
 
         table_rows = []
         for row in range(height):
@@ -221,9 +225,12 @@ class MemoryReader:
                 index = row * width + col
                 tile_id = bgmap[index] if index < len(bgmap) else 0
                 cell_char = tile_to_char.get(tile_id, f'{tile_id:#x}')
-                # 해당 좌표에 NPC가 있다면, NPC의 아이콘(방향 기호)으로 표시
-                if (col, row) in npc_dict:
-                    cell_char = npc_dict[(col, row)]["icon"]
+                # 해당 좌표에 oam 있다면, oam의 아이콘(방향 기호)으로 표시
+                
+                if (col, row) in oam_dict:
+                    print(f'OAM :{col} {row}')
+                    print(oam_dict[(col, row)]['icon'])
+                    cell_char = oam_dict[(col, row)]['icon']
                 row_cells.append(cell_char)
             table_rows.append("| " + " | ".join(row_cells) + " |")
         
