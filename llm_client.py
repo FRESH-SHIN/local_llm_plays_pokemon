@@ -90,6 +90,7 @@ Always respond using one of the following formats:
 ```
 /take_note {{your note}}
 ```
+- You **must** summarize the current situation using /take_note everytime(a sentense).
 
 - Provide a short explanation (1-2 sentences) of the chosen buttons after the command.
 """
