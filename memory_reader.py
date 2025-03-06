@@ -254,13 +254,19 @@ class MemoryReader:
                     x = block_col * 2
                     y = block_row * 2
                     tl = get_tile_char(x, y)
-                    if isinstance(tl, str) and tl.startswith("0x"):
+                    tr = get_tile_char(x + 1, y) if x + 1 < width else ""
+                    bl = get_tile_char(x, y + 1) if y + 1 < height else ""
+                    br = get_tile_char(x + 1, y + 1) if (x + 1 < width and y + 1 < height) else ""
+                    print(tl)
+                    if tl.startswith("0x"):
                         cell = tl
-                        print("Debug :"+ cell)
+                    elif tr.startswith("0x"):
+                        cell = tr
+                    elif bl.startswith("0x"):
+                        cell = bl
+                    elif br.startswith("0x"):
+                        cell = br
                     else:
-                        tr = get_tile_char(x + 1, y) if x + 1 < width else ""
-                        bl = get_tile_char(x, y + 1) if y + 1 < height else ""
-                        br = get_tile_char(x + 1, y + 1) if (x + 1 < width and y + 1 < height) else ""
                         cell = tl + tr + bl + br
                 row_cells.append(cell)
             table_rows.append("| " + " | ".join(row_cells) + " |")
@@ -405,7 +411,7 @@ class MemoryReader:
                 "badges": bin(self.read_memory("wObtainedBadges")).count("1")  # 1의 개수만큼 배지 개수
             },
             "passable_tiles": [f'{i:#x}' for i in passable_tiles],
-            "interactive_objects": interactive_objects
+            #"interactive_objects": interactive_objects
             # "inventory": {
             #     "items": parsed_items
             # },

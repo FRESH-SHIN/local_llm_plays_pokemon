@@ -52,11 +52,27 @@ Your task is to decide the next action based on the current game state and the p
 
 ## Your Game Screen
 When isTextBoxVisible is true, you can read the text information via the next table.
-- **Note**: Any entry shown as 0x## (e.g., 0xAA) denotes a *background tile code*, not regular text.
-- If the displayed text ends with a **"▼"** symbol, it indicates that pressing `"a"` will progress the dialogue.
-- The symbols `○` represent NPCs or sprites. When encountering these, you should stand in front of the sprite and press `"a"` to obtain information.
-- The symbol ◉ represents the player. Coords of player is {game_state['overworld_state']['position']}.
 {screen_ascii_data}
+
+## Text Display Rules
+
+- When `isTextBoxVisible` is `true`, you can read the text information using the next table.
+- **Note**: Any entry shown as `0x##` (e.g., `0xAA`) denotes a background tile code, not regular text. If no hexadecimal values are present, interpret the text as a continuous string.
+- If the displayed text ends with a `"▼"` symbol, it indicates that pressing `"A"` will progress the dialogue.
+- The symbols `○` represent NPCs or sprites. When encountering these, you should stand in front of the sprite and press `"A"` to obtain information.
+- The symbol `◉` represents the player. The coordinates of the player (`◉`) are `{game_state['overworld_state']['position']}`.
+
+## Example:
+
+| H  | el   | lo   |  t   | he   | re   | !    |      |      |    |
+|----|------|------|------|------|------|------|------|------|----|
+| W  | el   | co   | me   |  t   | o    | th   | e    |      | ▼  |
+
+Since no hexadecimal values are present, the text should be interpreted as:
+```
+Hello there! 
+Welcome to the ▼
+```
 
 ## Decision Criteria (Priority Order):
 1. Engage storyline-related NPCs or special events.
