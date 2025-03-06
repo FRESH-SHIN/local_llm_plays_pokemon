@@ -15,8 +15,9 @@ async def llm_worker(game_state_queue, command_queue, is_working, pyboy):
         game_state, screen_ascii_data = await game_state_queue.get()
 
         image_data = capture_screen(pyboy)
+        is_working.set()
         command_response = await send_to_llm(screen_ascii_data, game_state, image_data, notes)
-
+        is_working.clear()
         if not command_response:
             print("[ERROR] No response from LLM.")
             continue
