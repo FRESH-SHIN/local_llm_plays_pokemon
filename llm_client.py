@@ -55,7 +55,7 @@ When isTextBoxVisible is true, you can read the text information via the next ta
 - **Note**: Any entry shown as 0x## (e.g., 0xAA) denotes a *background tile code*, not regular text.
 - If the displayed text ends with a **"▼"** symbol, it indicates that pressing `"a"` will progress the dialogue.
 - The symbols `○` represent NPCs or sprites. When encountering these, you should stand in front of the sprite and press `"a"` to obtain information.
-- The symbol ◉ represents the player.
+- The symbol ◉ represents the player. Coords of player is {game_state['overworld_state']['position']}.
 {screen_ascii_data}
 
 ## Decision Criteria (Priority Order):
@@ -90,7 +90,7 @@ Always respond using one of the following formats:
 ```
 /take_note {{your note}}
 ```
-- You **must** summarize the current situation using /take_note everytime(a sentense).
+- You **must** summarize the current situation using /take_note everytime(a very short sentense).
 
 - Provide a short explanation (1-2 sentences) of the chosen buttons after the command.
 """
