@@ -10,7 +10,8 @@ class MemoryReader:
         # charmap 기반 문자 매핑
         self.tile_to_char = {
             0x77: "-", 0x76: "_", 
-            0x79: "┌", 0x7A: "─",0x7B: "┐", 0x7C: "│",    0x7D: "└",   0x7E: "┘",  0x7F: " ",
+            # 0x79: "┌", 0x7A: "─",0x7B: "┐", 0x7C: "│",    0x7D: "└",   0x7E: "┘",  0x7F: " ",
+             0x79: "", 0x7A: "",0x7B: "", 0x7C: "",    0x7D: "",   0x7E: "",  0x7F: " ",
             0x80: "A", 0x81: "B", 0x82: "C", 0x83: "D", 0x84: "E", 0x85: "F", 0x86: "G",
             0x87: "H", 0x88: "I", 0x89: "J", 0x8A: "K", 0x8B: "L", 0x8C: "M", 0x8D: "N",
             0x8E: "O", 0x8F: "P", 0x90: "Q", 0x91: "R", 0x92: "S", 0x93: "T", 0x94: "U",
@@ -190,7 +191,7 @@ class MemoryReader:
             facing_code = tile & 0x0C
             direction = direction_map.get(facing_code, "Unknown")
             icon = '⚪︎'
-            if i <= 3:
+            if i <= 3: # player
                 icon = '◉'
             oam_list.append({
                 "x": tile_x,
@@ -206,40 +207,69 @@ class MemoryReader:
         width, height: 출력할 표의 타일 크기 (기본 20×18)
         
         MemoryReader의 read_memory_bytes()를 사용하여 'wTileMap' 심볼로부터 BGMAP 데이터를 읽어옵니다.
-        그리고 get_oam_positions()를 통해 메모리에서 OAM 위치와 바라보는 방향을 읽어온 후,
-       tile_to_char 매핑에 따라 문자를 출력합니다.
+        그리고 get_oam_positions()를 통해 메모리에서 OAM 위치와 방향(플레이어는 ◉, 그 외는 ⚪︎)을 읽어옵니다.
+        
+        포켓몬스터는 문자 타일 외에도 스프라이트(플레이어 및 NPC)가 2×2 타일 단위로 사용되므로,
+        2×2 블록으로 묶어서 표를 생성하며, 해당 블록 내에 OAM 스프라이트가 있으면 그 아이콘으로 표시합니다.
         """
         # BGMAP 데이터: 'wTileMap' 심볼로부터 width*height 바이트 읽기
         bgmap = self.read_memory_bytes("wTileMap", width * height)
         tile_to_char = self.tile_to_char
 
-        # 메모리에서 oam 데이터를 읽어옴
+        # bgmap의 단일 타일을 문자로 변환하는 헬퍼 함수
+        def get_tile_char(x, y):
+            index = y * width + x
+            tile_id = bgmap[index] if index < len(bgmap) else 0
+            return tile_to_char.get(tile_id, f'{tile_id:#x}')
+
+        # OAM 데이터를 가져옴 (플레이어와 NPC 스프라이트)
         oam_positions = self.get_oam_positions(num_entries=40, screen_width=width, screen_height=height)
-        # 빠른 조회를 위해 좌표를 키로 하는 딕셔너리 생성: (x, y) -> oam 데이터
-        oam_dict = {(oam["x"], oam["y"]): oam for oam in oam_positions}
+        # 각 스프라이트는 2×2 블록을 차지하므로, 스프라이트의 좌상단 좌표를 기준으로 블록 좌표로 매핑
+        oam_block_dict = {}
+        for oam in oam_positions:
+            # sprite가 차지하는 블록의 좌표는 (x//2, y//2)
+            block_x = oam["x"] // 2
+            block_y = (oam["y"] + 1) // 2
+            # 이미 해당 블록에 다른 OAM이 등록되어 있으면 플레이어(◉)가 우선하도록 처리
+            if (block_x, block_y) in oam_block_dict:
+                if oam["icon"] == '◉':
+                    oam_block_dict[(block_x, block_y)] = oam
+            else:
+                oam_block_dict[(block_x, block_y)] = oam
+
+        # 2×2 블록으로 묶을 때의 새 행, 열 수 계산 (예: width=20 -> new_width=10)
+        new_width = (width + 1) // 2
+        new_height = (height + 1) // 2
 
         table_rows = []
-        for row in range(height):
+        for block_row in range(new_height):
             row_cells = []
-            for col in range(width):
-                index = row * width + col
-                tile_id = bgmap[index] if index < len(bgmap) else 0
-                cell_char = tile_to_char.get(tile_id, f'{tile_id:#x}')
-                # 해당 좌표에 oam 있다면, oam의 아이콘(방향 기호)으로 표시
-                
-                if (col, row) in oam_dict:
-                    print(f'OAM :{col} {row}')
-                    print(oam_dict[(col, row)]['icon'])
-                    cell_char = oam_dict[(col, row)]['icon']
-                row_cells.append(cell_char)
+            for block_col in range(new_width):
+                # 해당 블록의 좌표
+                if (block_col, block_row) in oam_block_dict:
+                    # OAM이 있는 블록이면 해당 아이콘을 사용 (플레이어는 ◉, 그 외는 ⚪︎)
+                    cell = oam_block_dict[(block_col, block_row)]["icon"]
+                else:
+                    # 없으면 2×2 블록의 각 타일을 연결하여 문자열 생성
+                    x = block_col * 2
+                    y = block_row * 2
+                    tl = get_tile_char(x, y)
+                    if isinstance(tl, str) and tl.startswith("0x"):
+                        cell = tl
+                        print("Debug :"+ cell)
+                    else:
+                        tr = get_tile_char(x + 1, y) if x + 1 < width else ""
+                        bl = get_tile_char(x, y + 1) if y + 1 < height else ""
+                        br = get_tile_char(x + 1, y + 1) if (x + 1 < width and y + 1 < height) else ""
+                        cell = tl + tr + bl + br
+                row_cells.append(cell)
             table_rows.append("| " + " | ".join(row_cells) + " |")
         
-        # 옵션: 표 상단에 열 번호 헤더와 구분선 추가
-        header = "| " + " | ".join(str(i) for i in range(width)) + " |"
-        separator = "| " + " | ".join(["---"] * width) + " |"
+        # 옵션: 표 상단에 블록 단위 열 번호 헤더와 구분선 추가
+        header = "| " + " | ".join(str(i) for i in range(new_width)) + " |"
+        separator = "| " + " | ".join(["---"] * new_width) + " |"
         md_table = header + "\n" + separator + "\n" + "\n".join(table_rows)
         return md_table
-
 
     def read_memory(self, symbol):
         """ 심볼 이름을 입력받아 해당 메모리 주소의 값을 읽음 (뱅크 포함) """

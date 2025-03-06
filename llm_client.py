@@ -6,8 +6,8 @@ from pyboy import PyBoy
 from ollama import AsyncClient
 import re
 
-MODEL_NAME = "llama3.2-vision:11b"
-async def send_to_llm(screen_ascii_data ,game_state, image_data, note):
+MODEL_NAME = "deepseek-r1:14b"
+async def send_to_llm(screen_ascii_data ,game_state, image_data, note, current_step):
     """
     이미지 전송을 지원하는 모델일 경우 화면 이미지를 추가하여 게임 상태를 LLM에 전송하고, 스트리밍으로 응답을 받아 실시간 출력하는 함수.
 
@@ -16,6 +16,7 @@ async def send_to_llm(screen_ascii_data ,game_state, image_data, note):
         game_state (dict): 현재 게임 상태를 포함한 JSON 데이터.
         image_data (str): Base64 인코딩된 게임 화면 PNG.
         note(array): 지금까지의 메모
+        current_step: 현재 스텝
     Returns:
         dict: 최종적으로 수신된 response text
     """
@@ -26,13 +27,16 @@ Your ultimate objective is to defeat the Elite Four and view the ending credits.
 ## Command Usage
 You can remember new information using the `/take_note {{knowledge}}` command.  
 - Example: `/take_note Pikachu evolves with a Thunder Stone`
-- You should actively use `/take_note` whenever you discover new information, plan a short-term objective, or identify next steps.
+- You must summarize the current situation using /take_note. Additionally, you should check for any differences from the previous step as you progress.
 
 You can simulate button presses using the command `/press_button {{button}}`.
 {{button}} could be 'a', 'b', 'start', 'select', 'right', 'left', 'down' or 'up'.
 - Example: `/press_button a`
 
 Your task is to decide the next action based on the current game state and the provided game screen.
+
+##Current Step
+{current_step}
 ## Your Note
 {note}
 
