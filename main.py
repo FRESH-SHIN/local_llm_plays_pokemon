@@ -4,6 +4,11 @@ from memory_reader import MemoryReader
 from llm_client import send_to_llm, capture_screen  # LLM과 이미지 캡처 함수 가져오기
 from PIL import Image
 
+def extract_commands(command_response: str):
+    # 행 단위로 나누고, /로 시작하는 행만 필터링
+    commands = [line.strip() for line in command_response.split('\n') if line.strip().startswith('/')]
+    return commands
+
 async def llm_worker(game_state_queue, command_queue, is_working, pyboy):
     """
     게임 상태를 큐에서 받아 LLM에 요청을 보내고, 응답된 명령을 처리합니다.
@@ -22,25 +27,26 @@ async def llm_worker(game_state_queue, command_queue, is_working, pyboy):
             print("[ERROR] No response from LLM.")
             continue
 
-        command_text = command_response.get("text", "").strip()
+        command_texts = extract_commands(command_response)
+        for command_text in command_texts:
 
-        # 슬래시 명령 처리
-        if command_text.startswith("/take_note"):
-            note = command_text[len("/take_note"):].strip()
-            notes.append(f"Step {step_count}: {note}")
-            print(f"[NOTE ADDED] {step_count}: {note}")
+            # 슬래시 명령 처리
+            if command_text.startswith("/take_note"):
+                note = command_text[len("/take_note"):].strip()
+                notes.append(f"Step {step_count}: {note}")
+                print(f"[NOTE ADDED] {step_count}: {note}")
 
-        elif command_text.startswith("/joypad"):
-            buttons = command_text[len("/joypad"):].strip()
-            button_list = [btn.strip() for btn in buttons.strip("[]").split(",") if btn.strip()]
-            for btn in button_list:
-                if btn not in ["a", "b", "up", "down", "left", "right", "start"]:
-                    print(f"[ERROR] Invalid button: {btn}")
-                    continue
-                command_queue.put(btn)
-            print(f"[INFO] Joypad commands queued: {button_list}")
-        else:
-            print(f"[ERROR] Unknown command format: {command_response}")
+            elif command_text.startswith("/joypad"):
+                buttons = command_text[len("/joypad"):].strip()
+                button_list = [btn.strip() for btn in buttons.strip("[]").split(",") if btn.strip()]
+                for btn in button_list:
+                    if btn not in ["a", "b", "up", "down", "left", "right", "start"]:
+                        print(f"[ERROR] Invalid button: {btn}")
+                        continue
+                    command_queue.put(btn)
+                print(f"[INFO] Joypad commands queued: {button_list}")
+            else:
+                print(f"[ERROR] Unknown command format: {command_response}")
 
         step_count += 1
 async def game_loop(pyboy, memory_reader, game_state_queue, command_queue, is_working):
