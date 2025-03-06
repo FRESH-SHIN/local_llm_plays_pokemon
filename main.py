@@ -39,6 +39,7 @@ async def llm_worker(game_state_queue, command_queue, is_working, pyboy):
             elif command_text.startswith("/joypad"):
                 buttons = command_text[len("/joypad"):].strip()
                 button_list = [btn.strip() for btn in buttons.strip("[]").split(",") if btn.strip()]
+                btn = btn.lower()
                 for btn in button_list:
                     if btn not in ["a", "b", "up", "down", "left", "right", "start"]:
                         print(f"[ERROR] Invalid button: {btn}")
