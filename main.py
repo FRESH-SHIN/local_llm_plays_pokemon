@@ -56,7 +56,7 @@ async def game_loop(pyboy, memory_reader, game_state_queue, command_queue, is_wo
     tick = 0
     while pyboy.tick():
         # LLM이 실행 중이지 않을 때만 새로운 게임 상태를 전송
-        if game_state_queue.empty() and not is_working.is_set():
+        if command_queue.empty() and game_state_queue.empty() and not is_working.is_set():
             #print(f"LLM Working: {is_working.is_set()}")  # LLM이 실행 중인지 확인
             tick += 1
             if tick > 60 * 5:  # 5초마다 LLM에 새로운 상태 전송
@@ -69,7 +69,7 @@ async def game_loop(pyboy, memory_reader, game_state_queue, command_queue, is_wo
         if not command_queue.empty():
             button = await command_queue.get()
             print(f"Pressing button: {button}")
-            pyboy.button(button, 3)
+            pyboy.button(button, 60)
 
         await asyncio.sleep(1/60)  # 게임 루프가 너무 빠르게 실행되지 않도록 조절
 
