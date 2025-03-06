@@ -7,7 +7,7 @@ from ollama import AsyncClient
 import re
 
 MODEL_NAME = "deepseek-r1:14b"
-async def send_to_llm(screen_ascii_data ,game_state, image_data):
+async def send_to_llm(screen_ascii_data ,game_state, image_data, note):
     """
     이미지 전송을 지원하는 모델일 경우 화면 이미지를 추가하여 게임 상태를 LLM에 전송하고, 스트리밍으로 응답을 받아 실시간 출력하는 함수.
 
@@ -15,7 +15,7 @@ async def send_to_llm(screen_ascii_data ,game_state, image_data):
         game_screen_ascii (str): game screen ascii data
         game_state (dict): 현재 게임 상태를 포함한 JSON 데이터.
         image_data (str): Base64 인코딩된 게임 화면 PNG.
-
+        note(array): 지금까지의 메모
     Returns:
         dict: 최종적으로 수신된 JSON 형식의 명령.
     """
@@ -23,7 +23,16 @@ async def send_to_llm(screen_ascii_data ,game_state, image_data):
 You are an AI controlling a Gameboy Pokémon Red game using a Game Boy controller.
 Your ultimate objective is to defeat the Elite Four and view the ending credits.
 
+## Command Usage
+You can remember new information using the `/take_note {knowledge}` command.  
+- Example: `/take_note Pikachu evolves with a Thunder Stone`
+
+You can simulate button presses using the command `/press_button {button}`.
+- Example: `/press_button a`
+
 Your task is to decide the next action based on the current game state and the provided game screen.
+## Your Note
+{note}
 
 ## Game State:
 {json.dumps(game_state, indent=2)}

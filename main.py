@@ -6,24 +6,42 @@ from PIL import Image
 
 async def llm_worker(game_state_queue, command_queue, is_working, pyboy):
     """
-    게임 상태를 큐에서 받아 LLM에 요청하고, 응답을 명령 큐에 추가하는 비동기 작업.
+    게임 상태를 큐에서 받아 LLM에 요청을 보내고, 응답된 명령을 처리합니다.
+    슬래시 명령 (/take_note, /joypad)을 지원하도록 확장되었습니다.
     """
+    step_count = 0
+    notes = []
     while True:
-        game_state, game_screen_ascii = await game_state_queue.get()  # 게임 상태 가져오기
-        is_working.set()  # LLM 작업 시작 표시
+        game_state = await game_state_queue.get()
 
-        image_data = capture_screen(pyboy)  # 게임 화면 캡처 및 Base64 인코딩
-        command = await send_to_llm(game_screen_ascii, game_state, image_data)  # LLM 호출
+        image_data = capture_screen(pyboy)
+        command_response = await send_to_llm(game_state, image_data, note)
 
-        is_working.clear()  # LLM 작업 종료 표시
+        if not command_response:
+            print("[ERROR] No response from LLM.")
+            continue
 
-        if command and "function" in command and command["function"] == "press_button":
-            button = command["args"].get("button", "")
-            if button in ["start", "select", "a", "b", "up", "down", "left", "right"]:
-                await command_queue.put(button)  # 버튼 입력을 큐에 추가
-            else:
-                print(f"[ERROR] Invalid button received: {button}")
+        command_text = command_response.get("text", "").strip()
 
+        # 슬래시 명령 처리
+        if command_text.startswith("/take_note"):
+            note = command_text[len("/take_note"):].strip()
+            notes.append(f"Step {step_count}: {note}")
+            print(f"[NOTE ADDED] {step_count}: {note}")
+
+        elif command_text.startswith("/joypad"):
+            buttons = command_text[len("/joypad"):].strip()
+            button_list = [btn.strip() for btn in buttons.strip("[]").split(",") if btn.strip()]
+            for btn in button_list:
+                if btn not in ["a", "b", "up", "down", "left", "right", "start"]:
+                    print(f"[ERROR] Invalid button: {btn}")
+                    continue
+                command_queue.put(btn)
+            print(f"[INFO] Joypad commands queued: {button_list}")
+        else:
+            print(f"[ERROR] Unknown command format: {command_response}")
+
+        step_count += 1
 async def game_loop(pyboy, memory_reader, game_state_queue, command_queue, is_working):
     """
     게임 실행 루프: LLM이 응답할 때까지는 계속 게임을 진행하면서 입력을 대기.
