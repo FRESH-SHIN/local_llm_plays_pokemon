@@ -17,7 +17,7 @@ async def send_to_llm(screen_ascii_data ,game_state, image_data, note):
         image_data (str): Base64 인코딩된 게임 화면 PNG.
         note(array): 지금까지의 메모
     Returns:
-        dict: 최종적으로 수신된 JSON 형식의 명령.
+        dict: 최종적으로 수신된 response text
     """
     prompt = f"""
 You are an AI controlling a Gameboy Pokémon Red game using a Game Boy controller.
@@ -101,19 +101,7 @@ Always respond using one of the following formats:
         print(response_text, end="", flush=True)  # 실시간 출력
         response_data += response_text
 
-    # JSON 블록 추출 (```json ~~~ ``` 사이의 내용만 가져오기)
-    match = re.search(r"```json*\n(.*?)\n```", response_data, re.DOTALL)
-    
-    if match:
-        json_content = match.group(1)
-        try:
-            return json.loads(json_content)  # 추출된 JSON을 파싱
-        except json.JSONDecodeError:
-            print("\n[ERROR] Failed to parse extracted JSON block.")
-    else:
-        print("\n[ERROR] No valid JSON block found in response.")
-
-    return {}
+    return response_data
 
 def capture_screen(pyboy):
     """
