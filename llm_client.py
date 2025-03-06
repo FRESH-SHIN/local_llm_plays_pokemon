@@ -6,7 +6,7 @@ from pyboy import PyBoy
 from ollama import AsyncClient
 import re
 
-MODEL_NAME = "deepseek-r1:1.5b"
+MODEL_NAME = "deepseek-r1:14b"
 async def send_to_llm(screen_ascii_data ,game_state, image_data):
     """
     이미지 전송을 지원하는 모델일 경우 화면 이미지를 추가하여 게임 상태를 LLM에 전송하고, 스트리밍으로 응답을 받아 실시간 출력하는 함수.
