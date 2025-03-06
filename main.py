@@ -71,7 +71,7 @@ async def game_loop(pyboy, memory_reader, game_state_queue, command_queue, is_wo
         if not command_queue.empty():
             button = await command_queue.get()
             print(f"Pressing button: {button}")
-            pyboy.button(button, 60)
+            pyboy.button(button, 10)
 
         await asyncio.sleep(1/60)  # 게임 루프가 너무 빠르게 실행되지 않도록 조절
 
