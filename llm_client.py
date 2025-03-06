@@ -27,11 +27,11 @@ Your ultimate objective is to defeat the Elite Four and view the ending credits.
 ## Command Usage
 You can remember new information using the `/take_note {{knowledge}}` command.  
 - Example: `/take_note Pikachu evolves with a Thunder Stone`
-- You must summarize the current situation using /take_note. Additionally, you should check for any differences from the previous step as you progress.
+- You **must** summarize the current situation using /take_note everytime. Additionally, you should check for any differences from the previous step as you progress.
 
-You can simulate button presses using the command `/press_button {{button}}`.
+You can simulate button presses using the command `/joypad {{button}}`.
 {{button}} could be 'a', 'b', 'start', 'select', 'right', 'left', 'down' or 'up'.
-- Example: `/press_button a`
+- Example: `/joypad a`
 
 Your task is to decide the next action based on the current game state and the provided game screen.
 
