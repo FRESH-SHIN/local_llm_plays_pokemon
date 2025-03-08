@@ -399,7 +399,7 @@ class MemoryReader:
                     "y": self.read_memory("wYCoord")
                 },
                 "facing_direction": facing_direction_map.get(self.read_memory("wTrainerFacingDirection"), "Unknown"),
-                # "current_map": MAP_ID_TO_NAME.get(self.read_memory("wCurMap"), f"UNKNOWN_MAP_{self.read_memory('wCurMap')}")
+                "current_map": MAP_ID_TO_NAME.get(self.read_memory("wCurMap"), f"UNKNOWN_MAP_{self.read_memory('wCurMap')}")
             },
             "trainer_state": {
                 "money": self.read_bcd_money(),

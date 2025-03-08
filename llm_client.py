@@ -7,7 +7,7 @@ from ollama import AsyncClient
 import re
 
 MODEL_NAME = "deepseek-r1:14b"
-async def send_to_llm(screen_ascii_data ,game_state, image_data, note, current_step):
+async def send_to_llm(screen_ascii_data ,game_state, image_data, note, current_step, region_notes):
     """
     이미지 전송을 지원하는 모델일 경우 화면 이미지를 추가하여 게임 상태를 LLM에 전송하고, 스트리밍으로 응답을 받아 실시간 출력하는 함수.
 
@@ -17,6 +17,7 @@ async def send_to_llm(screen_ascii_data ,game_state, image_data, note, current_s
         image_data (str): Base64 인코딩된 게임 화면 PNG.
         note(array): 지금까지의 메모
         current_step: 현재 스텝
+        region_notes (array): region note
     Returns:
         dict: 최종적으로 수신된 response text
     """
@@ -25,13 +26,21 @@ You are an AI controlling a Gameboy Pokémon Red game using a Game Boy controlle
 Your ultimate objective is to defeat the Elite Four and view the ending credits.
 
 ## Command Usage
-You can remember new information using the `/take_note {{knowledge}}` command.  
+You can remember new information using the `/take_note knowledge` command.  
 - Example: `/take_note Pikachu evolves with a Thunder Stone`
 - You **must** summarize the current situation using /take_note everytime. Additionally, you should check for any differences from the previous step as you progress.
+Additionally, you can keep specific notes for each map you visit:
+- To add a note about the current map:
+```
+/take_map_note your_note
+```
+- Example: `/take_map_note Professor Oak's Lab is located here.`
 
-You can simulate button presses using the command `/joypad {{button}}`.
+You can simulate button presses using the command `/joypad button`.
 {{button}} could be 'a', 'b', 'start', 'select', 'right', 'left', 'down' or 'up'.
 - Example: `/joypad a`
+
+
 
 Your task is to decide the next action based on the current game state and the provided game screen.
 
@@ -39,6 +48,9 @@ Your task is to decide the next action based on the current game state and the p
 {current_step}
 ## Your Note
 {note}
+
+## Your Region Note
+{region_notes[game_state["overworld_state"]["current_map"]]}
 
 ## Game State:
 {json.dumps(game_state, indent=2)}
@@ -53,7 +65,9 @@ Your task is to decide the next action based on the current game state and the p
 ## Your Game Screen
 When isTextBoxVisible is true, you can read the text information via the next table.
 {screen_ascii_data}
-
+"""
+    if game_state["current_mode"]["isTextBoxVisible"]:
+        prompt += f"""
 ## Text Display Rules
 
 - When `isTextBoxVisible` is `true`, you can read the text information using the next table.
@@ -73,7 +87,8 @@ Since no hexadecimal values are present, the text should be interpreted as:
 Hello there! 
 Welcome to the ▼
 ```
-
+    """
+    prompt += f"""
 ## Decision Criteria (Priority Order):
 1. Engage storyline-related NPCs or special events.
 2. Explore unexplored or promising map regions.

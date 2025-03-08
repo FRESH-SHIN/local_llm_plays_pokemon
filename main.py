@@ -1,9 +1,10 @@
 import asyncio
 from pyboy import PyBoy
+from consts import MAP_ID_TO_NAME
 from memory_reader import MemoryReader
 from llm_client import send_to_llm, capture_screen  # LLM과 이미지 캡처 함수 가져오기
 from PIL import Image
-
+memory_reader: MemoryReader
 def extract_commands(command_response: str):
     # 행 단위로 나누고, /로 시작하는 행만 필터링
     commands = [line.strip() for line in command_response.split('\n') if line.strip().startswith('/')]
@@ -16,12 +17,15 @@ async def llm_worker(game_state_queue, command_queue, is_working, pyboy):
     """
     step_count = 0
     notes = []
+    region_notes = []
+    for i in MAP_ID_TO_NAME:
+        region_notes[i] = []
     while True:
         game_state, screen_ascii_data = await game_state_queue.get()
 
         image_data = capture_screen(pyboy)
         is_working.set()
-        command_response = await send_to_llm(screen_ascii_data, game_state, image_data, notes, step_count)
+        command_response = await send_to_llm(screen_ascii_data, game_state, image_data, notes, step_count, region_notes)
         is_working.clear()
         if not command_response:
             print("[ERROR] No response from LLM.")
@@ -35,7 +39,12 @@ async def llm_worker(game_state_queue, command_queue, is_working, pyboy):
                 note = command_text[len("/take_note"):].strip()
                 notes.append(f"Step {step_count}: {note}")
                 print(f"[NOTE ADDED] {step_count}: {note}")
-
+            elif command_text.startswith("/take_map_note"):
+                current_map =  game_state["overworld_state"]["current_map"]
+                note = command_text[len("/take_map_note"):].strip()
+                if region_notes in note:
+                    region_notes[current_map].append(f"Step {step_count}: {note}")
+                    print(f"[NOTE ADDED] {step_count}: {note}")
             elif command_text.startswith("/joypad"):
                 buttons = command_text[len("/joypad"):].strip()
                 button_list = [btn.strip() for btn in buttons.strip("[]").split(",") if btn.strip()]
@@ -47,6 +56,7 @@ async def llm_worker(game_state_queue, command_queue, is_working, pyboy):
                         continue
                     await command_queue.put(btn)
                 print(f"[INFO] Joypad commands queued: {button_list}")
+            
             else:
                 print(f"[ERROR] Unknown command format: {command_response}")
 
