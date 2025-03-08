@@ -21,6 +21,7 @@ async def send_to_llm(screen_ascii_data ,game_state, image_data, note, current_s
     Returns:
         dict: 최종적으로 수신된 response text
     """
+    print(region_notes)
     prompt = f"""
 You are an AI controlling a Gameboy Pokémon Red game using a Game Boy controller.
 Your ultimate objective is to defeat the Elite Four and view the ending credits.

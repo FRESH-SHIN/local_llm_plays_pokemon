@@ -17,9 +17,9 @@ async def llm_worker(game_state_queue, command_queue, is_working, pyboy):
     """
     step_count = 0
     notes = []
-    region_notes = []
+    region_notes = {}
     for i in MAP_ID_TO_NAME:
-        region_notes[i] = []
+        region_notes[MAP_ID_TO_NAME[i]] = []
     while True:
         game_state, screen_ascii_data = await game_state_queue.get()
 
