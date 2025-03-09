@@ -23,7 +23,8 @@ class GBHooker:
             print(winpos)
             i = 0
             rawcodes = ''
-            while not (self.pyboy.memory[strptr+i] == 0x50 or self.pyboy.memory[strptr+i] == 0x57): #terminate char
+            while not (self.pyboy.memory[strptr+i] == 0x50 or self.pyboy.memory[strptr+i] == 0x57 
+                       or self.pyboy.memory[strptr+i] == 0x00): #terminate char
                 if self.pyboy.memory[strptr+i] in CHARMAP:
                     rawcodes += CHARMAP[self.pyboy.memory[strptr+i]]
                 i = i + 1
