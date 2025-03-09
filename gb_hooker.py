@@ -27,7 +27,7 @@ class GBHooker:
                     rawcodes += CHARMAP[self.pyboy.memory[strptr+i]]
                 i = i + 1
             print(rawcodes)
-            self.queue.put(rawcodes)
+            asyncio.run(self.queue.put(rawcodes))
 
         
         
