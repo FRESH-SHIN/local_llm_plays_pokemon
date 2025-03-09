@@ -1,6 +1,7 @@
 import asyncio
 from pyboy import PyBoy
 from consts import MAP_ID_TO_NAME
+from gb_hooker import GBHooker
 from memory_reader import MemoryReader
 from llm_client import send_to_llm, capture_screen  # LLM과 이미지 캡처 함수 가져오기
 from PIL import Image
@@ -10,22 +11,24 @@ def extract_commands(command_response: str):
     commands = [line.strip() for line in command_response.split('\n') if line.strip().startswith('/')]
     return commands
 
-async def llm_worker(game_state_queue, command_queue, is_working, pyboy):
+async def llm_worker(game_state_queue, command_queue, is_working, pyboy, dialogues_queue):
     """
     게임 상태를 큐에서 받아 LLM에 요청을 보내고, 응답된 명령을 처리합니다.
     슬래시 명령 (/take_note, /joypad)을 지원하도록 확장되었습니다.
     """
     step_count = 0
     notes = []
+    dialogues = ""
     region_notes = {}
     for i in MAP_ID_TO_NAME:
         region_notes[MAP_ID_TO_NAME[i]] = []
     while True:
         game_state, screen_ascii_data = await game_state_queue.get()
-
+        if not dialogues_queue.empty():
+            dialogues += await dialogues_queue.get() + "\n"
         image_data = capture_screen(pyboy)
         is_working.set()
-        command_response = await send_to_llm(screen_ascii_data, game_state, image_data, notes, step_count, region_notes)
+        command_response = await send_to_llm(screen_ascii_data, game_state, image_data, notes, step_count, region_notes, dialogues)
         is_working.clear()
         if not command_response:
             print("[ERROR] No response from LLM.")
@@ -90,12 +93,15 @@ async def main():
     pyboy = PyBoy(rom_path, window="SDL2")
     pyboy.set_emulation_speed(0)  # 실시간 실행
 
+    
     memory_reader = MemoryReader(pyboy)
-
+    hooker = GBHooker(pyboy, memory_reader.symbol_map)
+    
     # LLM과 PyBoy 간 데이터 교환을 위한 큐 생성
+    dialogues_queue = asyncio.Queue()
     game_state_queue = asyncio.Queue()  # LLM에 보낼 게임 상태 저장
     command_queue = asyncio.Queue()  # LLM의 응답을 저장
-
+    hooker.initHooks(dialogues_queue)
     # LLM 작업 상태를 관리하는 Event 객체 생성
     is_working = asyncio.Event()
 

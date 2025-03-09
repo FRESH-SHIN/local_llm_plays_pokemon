@@ -1,3 +1,4 @@
+from pyboy import PyBoyRegisterFile
 from symbol_parser import parse_sym_file
 
 from consts import *
@@ -284,7 +285,7 @@ class MemoryReader:
 
         bank, address = self.symbol_map[symbol]
         return self.pyboy.memory[address] if bank == 0 else self.pyboy.memory[bank, address]
-
+    
     def get_passable_tiles(self):
         """
         wTilesetCollisionPtr은 통과 가능한 타일 ID 리스트의 포인터입니다.

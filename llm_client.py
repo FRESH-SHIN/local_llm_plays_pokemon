@@ -7,7 +7,7 @@ from ollama import AsyncClient
 import re
 
 MODEL_NAME = "deepseek-r1:14b"
-async def send_to_llm(screen_ascii_data ,game_state, image_data, note, current_step, region_notes):
+async def send_to_llm(screen_ascii_data ,game_state, image_data, note, current_step, region_notes, diagloues):
     """
     이미지 전송을 지원하는 모델일 경우 화면 이미지를 추가하여 게임 상태를 LLM에 전송하고, 스트리밍으로 응답을 받아 실시간 출력하는 함수.
 
@@ -42,12 +42,16 @@ You can simulate button presses using the command `/joypad button`.
 
 
 
-Your task is to decide the next action based on the current game state and the provided game screen.
+Your task is to decide the next action based on the current game state.
 
-##Current Step
+
+## Current Step
 {current_step}
 ## Your Note
 {note}
+
+## Previous Conversation
+{diagloues}
 
 ## Your Region Note
 {region_notes[game_state["overworld_state"]["current_map"]]}
@@ -96,15 +100,14 @@ Welcome to the ▼
 4. Maintain Pokémon's health by visiting Pokémon Centers.
 
 ## Controls:
-You must always select and press one of the following buttons:
-- **"start"**: Opens the in-game menu.
-- **"select"**: Used for special functions in some menus. Don't use this button because the button is not usable under any circumstances.
-- **"a"**: Confirms selections, interacts with NPCs, or uses items.
-- **"b"**: Cancels selections, closes menus.
-- **"up"**: Moves the player or menu cursor upward.
-- **"down"**: Moves the player or menu cursor downward.
-- **"left"**: Moves the player or menu cursor to the left.
-- **"right"**: Moves the player or menu cursor to the right.
+- **"/joypad start"**: Opens the in-game menu.
+- **"/joypad select"**: Used for special functions in some menus. Don't use this button because the button is not usable under any circumstances.
+- **"/joypad a"**: Confirms selections, interacts with NPCs, or uses items.
+- **"/joypad b"**: Cancels selections, closes menus.
+- **"/joypad up"**: Moves the player or menu cursor upward.
+- **"/joypad down"**: Moves the player or menu cursor downward.
+- **"/joypad left"**: Moves the player or menu cursor to the left.
+- **"/joypad right"**: Moves the player or menu cursor to the right.
 ### Additional Conditions:
 - The **"start"** button **cannot** be used when `isTextMenuWindowVisible` is `true`.
 - The **"select"** button **must never be used** under any circumstances.
