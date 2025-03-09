@@ -19,7 +19,7 @@ class GBHooker:
         loop = asyncio.get_event_loop()
         strptr = (pyboyregisterfile.D << 8) + pyboyregisterfile.E
         winpos = pyboyregisterfile.HL
-        if(winpos == 50361):
+        if(winpos == 50361 and strptr <= 0xC000):
             print(winpos)
             i = 0
             rawcodes = ''
