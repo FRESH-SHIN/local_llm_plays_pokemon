@@ -16,6 +16,7 @@ class GBHooker:
         self.queue = queue
     
     def PlaceStringHook(self, pyboyregisterfile: PyBoyRegisterFile):
+        loop = asyncio.get_event_loop()
         strptr = (pyboyregisterfile.D << 8) + pyboyregisterfile.E
         winpos = pyboyregisterfile.HL
         if(winpos == 50361):
@@ -27,7 +28,7 @@ class GBHooker:
                     rawcodes += CHARMAP[self.pyboy.memory[strptr+i]]
                 i = i + 1
             print(rawcodes)
-            asyncio.run(self.queue.put(rawcodes))
+            asyncio.ensure_future(self.queue.put(rawcodes), loop = loop)
 
         
         
