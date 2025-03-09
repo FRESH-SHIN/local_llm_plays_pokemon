@@ -106,7 +106,7 @@ async def main():
     is_working = asyncio.Event()
 
     # LLM 작업을 백그라운드에서 실행 (종료될 필요 없음)
-    asyncio.create_task(llm_worker(game_state_queue, command_queue, is_working, pyboy))
+    asyncio.create_task(llm_worker(game_state_queue, command_queue, is_working, pyboy, dialogues_queue))
 
     # 게임 루프 실행
     await game_loop(pyboy, memory_reader, game_state_queue, command_queue, is_working)
